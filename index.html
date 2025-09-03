@@ -1,83 +1,107 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MindAR Final</title>
-<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-<script src="https://unpkg.com/mind-ar@1.2.4/dist/mindar-image-aframe.prod.js"></script>
-<style>
-  body, html { margin:0; padding:0; overflow:hidden; font-family: Arial, sans-serif; }
-  #startBtn {
-    position: fixed; top:50%; left:50%;
-    transform: translate(-50%, -50%);
-    padding: 15px 30px;
-    font-size: 18px;
-    background: green;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    z-index: 1000;
-  }
-  #feedback {
-    position: fixed; top: 20px; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.7);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 16px;
-    z-index: 1000;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindAR Final - Solo Imagen</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/mind-ar@1.2.4/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    body, html { margin: 0; padding: 0; overflow: hidden; font-family: Arial, sans-serif; }
+    #startBtn {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 30px;
+      font-size: 18px;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    #feedback {
+      position: fixed; top: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      z-index: 1000;
+    }
+  </style>
 </head>
 <body>
+  <!-- Overlay de inicio -->
+  <button id="startBtn">Iniciar AR</button>
+  <div id="feedback">📷 Presiona “Iniciar AR” para comenzar</div>
 
-<!-- Overlay de inicio -->
-<button id="startBtn">Iniciar AR</button>
-<div id="feedback">📷 Presiona “Iniciar AR” para comenzar</div>
+  <!-- Escena MindAR -->
+  <a-scene
+    mindar-image="imageTargetSrc: ./med_box.mind; maxTrack: 1; uiLoading: yes; uiScanning: yes; uiError: yes;"
+    embedded
+    color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: true"
+  >
+    <!-- Target -->
+    <a-entity mindar-image-target="targetIndex: 0" id="marker">
+      <a-box color="green" depth="0.2" height="0.2" width="0.2"></a-box>
+      <a-text
+        value="¡Correcto! Toma esta dosis"
+        color="green"
+        align="center"
+        position="0 0.3 0"
+        scale="0.5 0.5 0.5"
+      ></a-text>
+    </a-entity>
 
-<!-- Escena MindAR -->
-<a-scene mindar-image="imageTargetSrc: ./med_box.mind; maxTrack: 1" embedded
-         color-space="sRGB"
-         renderer="colorManagement: true, physicallyCorrectLights"
-         vr-mode-ui="enabled: false"
-         device-orientation-permission-ui="enabled: false">
+    <!-- Cámara estándar -->
+    <a-camera></a-camera>
+  </a-scene>
 
-  <!-- Cámara obligatoria MindAR -->
-  <a-entity mindar-image-camera></a-entity>
+  <script>
+    const btn = document.getElementById('startBtn');
+    const feedback = document.getElementById('feedback');
+    const marker = document.getElementById('marker');
+    const scene = document.querySelector('a-scene');
 
-  <!-- Target -->
-  <a-entity mindar-image-target="targetIndex: 0" id="marker">
-    <a-box color="green" depth="0.2" height="0.2" width="0.2"></a-box>
-  </a-entity>
+    btn.addEventListener('click', () => {
+      // Escondemos el botón
+      btn.style.display = 'none';
+      feedback.textContent = "📷 Cámara activada, apunta a la caja del medicamento";
+      feedback.style.background = "rgba(0, 0, 0, 0.7)";
 
-</a-scene>
+      // Forzar inicialización de MindAR
+      scene.setAttribute('mindar-image', 'imageTargetSrc: ./med_box.jpg; maxTrack: 1; uiLoading: yes; uiScanning: yes; uiError: yes;');
+    });
 
-<script>
-const btn = document.getElementById('startBtn');
-const feedback = document.getElementById('feedback');
-const marker = document.getElementById('marker');
+    // Verificar acceso a la cámara
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        console.log('Acceso a la cámara concedido');
+        stream.getTracks().forEach(track => track.stop()); // Cierra el stream inicial
+      })
+      .catch(err => {
+        console.error('Error al acceder a la cámara:', err);
+        feedback.textContent = 'Error: No se pudo acceder a la cámara. Verifica permisos.';
+        feedback.style.background = 'rgba(255, 0, 0, 0.7)';
+      });
 
-btn.addEventListener('click', () => {
-  // Escondemos el botón y dejamos que MindAR arranque automáticamente
-  btn.style.display = 'none';
-  feedback.textContent = "📷 Cámara activada, apunta a la caja del medicamento";
-});
+    // Eventos de detección del target
+    marker.addEventListener('targetFound', () => {
+      console.log('Target encontrado');
+      feedback.textContent = '✅ Medicamento correcto detectado';
+      feedback.style.background = 'rgba(0, 128, 0, 0.7)';
+    });
 
-// Eventos de detección del target
-marker.addEventListener('targetFound', () => {
-  feedback.textContent = "✅ Medicamento correcto detectado";
-  feedback.style.background = "rgba(0,128,0,0.7)";
-});
-
-marker.addEventListener('targetLost', () => {
-  feedback.textContent = "❌ Apunta a la caja correcta";
-  feedback.style.background = "rgba(255,0,0,0.7)";
-});
-</script>
-
+    marker.addEventListener('targetLost', () => {
+      console.log('Target perdido');
+      feedback.textContent = '❌ Apunta a la caja correcta';
+      feedback.style.background = 'rgba(255, 0, 0, 0.7)';
+    });
+  </script>
 </body>
 </html>
-
