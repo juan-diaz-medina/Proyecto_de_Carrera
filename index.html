@@ -1,76 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AR Medicamento con MindAR</title>
+  <title>Prueba MindAR</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar/dist/mindar-image-aframe.prod.js"></script>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
-    #feedback {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      z-index: 1000;
-    }
+    body, html { margin: 0; padding: 0; overflow: hidden; }
   </style>
 </head>
 <body>
-
-  <div id="feedback">Buscando medicamento...</div>
-
-
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mindar-image@0.4.0/dist/mindar-image-aframe.prod.js"></script>
-
   <a-scene
-    mindar-image="imageTargetSrc: med_box.mind; maxTrack: 1; uiLoading: no; uiScanning: no;"
+    mindar-image="imageTargetSrc: ./targets/med_box.mind; maxTrack: 1"
     embedded
     color-space="sRGB"
     renderer="colorManagement: true, physicallyCorrectLights"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false"
-  >
+    device-orientation-permission-ui="enabled: false">
 
+    <!-- Cámara de MindAR -->
+    <a-entity mindar-image-camera></a-entity>
+
+    <!-- Target -->
     <a-entity mindar-image-target="targetIndex: 0">
-
-      <a-text
-        value="¡Correcto! Toma esta dosis"
-        color="green"
-        align="center"
-        position="0 0.3 0"
-        scale="0.5 0.5 0.5"
-      ></a-text>
+      <a-box position="0 0 0" color="green"></a-box>
     </a-entity>
-
-    <!-- Cámara -->
-    <a-entity camera></a-entity>
   </a-scene>
-
-  <script>
-
-    const target = document.querySelector('a-entity[mindar-image-target]');
-    const feedback = document.querySelector('#feedback');
-
-    target.addEventListener('targetFound', () => {
-      console.log('Target encontrado');
-      feedback.textContent = 'Medicamento correcto detectado';
-      feedback.style.background = 'rgba(0, 128, 0, 0.7)';
-    });
-
-    target.addEventListener('targetLost', () => {
-      console.log('Target perdido');
-      feedback.textContent = 'Incorrecto, apunta a la caja correcta';
-      feedback.style.background = 'rgba(255, 0, 0, 0.7)';
-    });
-  </script>
 </body>
-
 </html>
