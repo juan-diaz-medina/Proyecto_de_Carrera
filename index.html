@@ -1,68 +1,83 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prueba MindAR con Feedback</title>
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar/dist/mindar-image-aframe.prod.js"></script>
-  <style>
-    body, html { margin: 0; padding: 0; overflow: hidden; }
-    #feedback {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-family: Arial, sans-serif;
-      z-index: 1000;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindAR Final</title>
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script src="https://unpkg.com/mind-ar@1.2.4/dist/mindar-image-aframe.prod.js"></script>
+<style>
+  body, html { margin:0; padding:0; overflow:hidden; font-family: Arial, sans-serif; }
+  #startBtn {
+    position: fixed; top:50%; left:50%;
+    transform: translate(-50%, -50%);
+    padding: 15px 30px;
+    font-size: 18px;
+    background: green;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    z-index: 1000;
+  }
+  #feedback {
+    position: fixed; top: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 16px;
+    z-index: 1000;
+  }
+</style>
 </head>
 <body>
-  <div id="feedback">📷 Buscando medicamento...</div>
 
-  <a-scene
-    mindar-image="imageTargetSrc: ./targets/med_box.mind; maxTrack: 1"
-    embedded
-    color-space="sRGB"
-    renderer="colorManagement: true, physicallyCorrectLights"
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+<!-- Overlay de inicio -->
+<button id="startBtn">Iniciar AR</button>
+<div id="feedback">📷 Presiona “Iniciar AR” para comenzar</div>
 
-    <!-- Cámara de MindAR -->
-    <a-entity mindar-image-camera></a-entity>
+<!-- Escena MindAR -->
+<a-scene mindar-image="imageTargetSrc: ./med_box.mind; maxTrack: 1" embedded
+         color-space="sRGB"
+         renderer="colorManagement: true, physicallyCorrectLights"
+         vr-mode-ui="enabled: false"
+         device-orientation-permission-ui="enabled: false">
 
-    <!-- Target (caja de medicina) -->
-    <a-entity mindar-image-target="targetIndex: 0" id="marker">
-      <!-- Algo que aparezca encima de la caja detectada -->
-      <a-text value="¡Correcto! Toma esta dosis" 
-              color="green" 
-              align="center" 
-              position="0 0.5 0" 
-              scale="0.6 0.6 0.6">
-      </a-text>
-    </a-entity>
-  </a-scene>
+  <!-- Cámara obligatoria MindAR -->
+  <a-entity mindar-image-camera></a-entity>
 
-  <script>
-    const marker = document.querySelector('#marker');
-    const feedback = document.querySelector('#feedback');
+  <!-- Target -->
+  <a-entity mindar-image-target="targetIndex: 0" id="marker">
+    <a-box color="green" depth="0.2" height="0.2" width="0.2"></a-box>
+  </a-entity>
 
-    marker.addEventListener('targetFound', () => {
-      console.log("🎯 Medicamento detectado");
-      feedback.textContent = "✅ Medicamento correcto detectado";
-      feedback.style.background = "rgba(0, 128, 0, 0.7)";
-    });
+</a-scene>
 
-    marker.addEventListener('targetLost', () => {
-      console.log("❌ Medicamento perdido");
-      feedback.textContent = "❌ Incorrecto, apunta a la caja correcta";
-      feedback.style.background = "rgba(255, 0, 0, 0.7)";
-    });
-  </script>
+<script>
+const btn = document.getElementById('startBtn');
+const feedback = document.getElementById('feedback');
+const marker = document.getElementById('marker');
+
+btn.addEventListener('click', () => {
+  // Escondemos el botón y dejamos que MindAR arranque automáticamente
+  btn.style.display = 'none';
+  feedback.textContent = "📷 Cámara activada, apunta a la caja del medicamento";
+});
+
+// Eventos de detección del target
+marker.addEventListener('targetFound', () => {
+  feedback.textContent = "✅ Medicamento correcto detectado";
+  feedback.style.background = "rgba(0,128,0,0.7)";
+});
+
+marker.addEventListener('targetLost', () => {
+  feedback.textContent = "❌ Apunta a la caja correcta";
+  feedback.style.background = "rgba(255,0,0,0.7)";
+});
+</script>
+
 </body>
 </html>
+
